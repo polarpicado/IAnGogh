@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import uuid
@@ -181,7 +181,7 @@ class DocumentService:
         else:
             write_placeholder_pdf(
                 pdf_path,
-                "JobHunterMaster - PDF Derivado",
+                "IAnGogh - PDF Derivado",
                 [
                     f"source: {src.name}",
                     f"profileId: {profile_id}",
@@ -269,7 +269,7 @@ class BackupService:
 
     def export_bundle(self, password_hint: str = "") -> str:
         stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        out = self.export_dir / f"jobhuntermaster_export_{stamp}.zip"
+        out = self.export_dir / f"IAnGogh_export_{stamp}.zip"
 
         dump = {
             "profiles": list(mongo.db.profiles.find({}, {"_id": 0})),

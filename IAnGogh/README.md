@@ -1,4 +1,4 @@
-﻿# JobHunterMaster (Python MVP)
+# IAnGogh (Python MVP)
 
 Sistema maestro local para empleabilidad con integración estable hacia UiPath (Elchapi/Joao).
 

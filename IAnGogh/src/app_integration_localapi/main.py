@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
@@ -15,19 +15,19 @@ from app_core.services import (
 from app_infrastructure.config import CONFIG
 from app_infrastructure.mongo import mongo
 
-app = FastAPI(title="JobHunterMaster Local API", version="0.1.0")
+app = FastAPI(title="IAnGogh Local API", version="0.1.0")
 templates = Jinja2Templates(directory=str((CONFIG.base_dir / "src" / "app_desktop" / "templates")))
 
 I18N = {
     "es": {
-        "title": "JobHunterMaster MVP",
+        "title": "IAnGogh MVP",
         "profiles": "Perfiles",
         "jobs": "Vacantes",
         "applications": "Postulaciones Pendientes",
         "manual": "Revisión Manual",
     },
     "en": {
-        "title": "JobHunterMaster MVP",
+        "title": "IAnGogh MVP",
         "profiles": "Profiles",
         "jobs": "Jobs",
         "applications": "Pending Applications",
@@ -65,7 +65,7 @@ def dashboard(
 def health():
     return {
         "ok": True,
-        "service": "JobHunterMaster",
+        "service": "IAnGogh",
         "version": "0.1.0",
         "dbBackend": mongo.backend,
     }

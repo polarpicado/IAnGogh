@@ -10,13 +10,13 @@ __pycache__/
 .env
 
 # Runtime data
-JobHunterMaster/data/backups/*
-JobHunterMaster/data/exports/*
-JobHunterMaster/data/temp/*
-JobHunterMaster/data/logs/*
+IAnGogh/data/backups/*
+IAnGogh/data/exports/*
+IAnGogh/data/temp/*
+IAnGogh/data/logs/*
 
 # Keep folders
-!JobHunterMaster/data/backups/.gitkeep
-!JobHunterMaster/data/exports/.gitkeep
-!JobHunterMaster/data/temp/.gitkeep
-!JobHunterMaster/data/logs/.gitkeep
+!IAnGogh/data/backups/.gitkeep
+!IAnGogh/data/exports/.gitkeep
+!IAnGogh/data/temp/.gitkeep
+!IAnGogh/data/logs/.gitkeep

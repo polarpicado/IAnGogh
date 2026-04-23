@@ -1,4 +1,4 @@
-﻿Pendientes UiPath (Elchapi)
+Pendientes UiPath (Elchapi)
 
 Objetivo general
 - Ejecutar automatización web de búsqueda y postulación sin acoplar la app maestra.
@@ -64,11 +64,11 @@ Estado actual de integración (implementado en este MVP)
 - Endpoint captcha resolved: POST /api/captcha/resolved
 
 Ubicación de contratos JSON de referencia
-- JobHunterMaster/contracts/active_profile.json
-- JobHunterMaster/contracts/extracted_jobs.json
-- JobHunterMaster/contracts/pending_applications.json
-- JobHunterMaster/contracts/application_result.json
-- JobHunterMaster/contracts/manual_review_alert.json
+- IAnGogh/contracts/active_profile.json
+- IAnGogh/contracts/extracted_jobs.json
+- IAnGogh/contracts/pending_applications.json
+- IAnGogh/contracts/application_result.json
+- IAnGogh/contracts/manual_review_alert.json
 
 Pendientes UiPath específicos para la siguiente iteración
 - Consumir perfil activo real desde /api/contracts/active-profile.

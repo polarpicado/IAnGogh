@@ -17,7 +17,7 @@ class AppConfig:
     app_locale: str = os.getenv("APP_LOCALE", "es")
     app_theme: str = os.getenv("APP_THEME", "dark")
 
-    base_dir: Path = Path("JobHunterMaster").resolve()
+    base_dir: Path = Path("IAnGogh").resolve()
     data_dir: Path = base_dir / "data"
     contracts_dir: Path = base_dir / "contracts"
 
