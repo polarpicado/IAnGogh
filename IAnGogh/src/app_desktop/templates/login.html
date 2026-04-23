@@ -25,7 +25,7 @@
       box-sizing: border-box;
     }
     .card {
-      width: min(96vw, 980px);
+      width: min(96vw, 460px);
       background: var(--surface);
       border-radius: 14px;
       border: 1px solid rgba(47,156,149,.45);
@@ -34,7 +34,6 @@
     }
     h1 { margin: 0 0 8px; font-size: 1.2rem; }
     p { margin: 0 0 14px; opacity: .85; }
-    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; }
     .box { border: 1px solid rgba(47,156,149,.35); border-radius: 12px; padding: 14px; }
     h2 { margin: 0 0 6px; font-size: 1rem; }
     label { display: block; margin: 10px 0 5px; font-size: .9rem; }
@@ -58,6 +57,10 @@
       cursor: pointer;
       font-weight: 600;
     }
+    .btn.link {
+      background: transparent;
+      border: 1px solid rgba(47,156,149,.7);
+    }
     .hint { margin-top: 12px; font-size: .85rem; opacity: .8; }
     .msg {
       margin-top: 8px;
@@ -77,13 +80,14 @@
       padding: 8px;
       font-size: .9rem;
     }
+    .hidden { display: none; }
     code { font-family: Consolas, monospace; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Acceso IAnGogh</h1>
-    <p>Inicia sesión o crea una cuenta nueva.</p>
+    <p>Inicia sesión para entrar al panel.</p>
 
     {% if error %}
       <div class="msg">Credenciales inválidas. Usa usuario o correo + contraseña.</div>
@@ -98,32 +102,49 @@
       <div class="ok">Cuenta creada. Ya puedes iniciar sesión.</div>
     {% endif %}
 
-    <div class="grid">
-      <div class="box">
-        <h2>Iniciar Sesión</h2>
-        <form method="post" action="/login">
-          <label>Usuario o correo</label>
-          <input name="username_or_email" autocomplete="username" required />
-          <label>Contraseña</label>
-          <input name="password" type="password" autocomplete="current-password" required />
-          <button class="btn" type="submit">Ingresar</button>
-        </form>
-        <div class="hint">Demo: <code>user</code> / <code>user</code></div>
-      </div>
+    <div class="box" id="login-box">
+      <h2>Iniciar Sesión</h2>
+      <form method="post" action="/login">
+        <label>Usuario o correo</label>
+        <input name="username_or_email" autocomplete="username" required />
+        <label>Contraseña</label>
+        <input name="password" type="password" autocomplete="current-password" required />
+        <button class="btn" type="submit">Ingresar</button>
+      </form>
+      <button id="show-register" class="btn link" type="button">Si no tienes cuenta, Regístrate</button>
+      <div class="hint">Demo: <code>user</code> / <code>user</code></div>
+    </div>
 
-      <div class="box">
-        <h2>Crear Cuenta</h2>
-        <form method="post" action="/register">
-          <label>Correo</label>
-          <input name="email" type="email" required />
-          <label>Usuario</label>
-          <input name="username" required />
-          <label>Contraseña</label>
-          <input name="password" type="password" required />
-          <button class="btn" type="submit">Registrarme</button>
-        </form>
-      </div>
+    <div class="box hidden" id="register-box" style="margin-top:12px;">
+      <h2>Crear Cuenta</h2>
+      <form method="post" action="/register">
+        <label>Correo</label>
+        <input name="email" type="email" required />
+        <label>Usuario</label>
+        <input name="username" required />
+        <label>Contraseña</label>
+        <input name="password" type="password" required />
+        <button class="btn" type="submit">Registrarme</button>
+      </form>
+      <button id="show-login" class="btn link" type="button">Volver al login</button>
     </div>
   </div>
+
+  <script>
+    const showRegister = document.getElementById('show-register');
+    const showLogin = document.getElementById('show-login');
+    const loginBox = document.getElementById('login-box');
+    const registerBox = document.getElementById('register-box');
+
+    showRegister?.addEventListener('click', () => {
+      loginBox.classList.add('hidden');
+      registerBox.classList.remove('hidden');
+    });
+
+    showLogin?.addEventListener('click', () => {
+      registerBox.classList.add('hidden');
+      loginBox.classList.remove('hidden');
+    });
+  </script>
 </body>
 </html>
