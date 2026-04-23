@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from app_domain.models import ApplicationAttempt, JobOpportunity, Profile
@@ -15,6 +15,21 @@ from app_infrastructure.security import CryptoService
 
 def _to_dict(model) -> dict:
     return model.model_dump(by_alias=True)
+
+
+def _parse_date(value: str) -> date | None:
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _calculate_age(birth_date_iso: str) -> int | None:
+    d = _parse_date(birth_date_iso)
+    if not d:
+        return None
+    today = date.today()
+    return today.year - d.year - ((today.month, today.day) < (d.month, d.day))
 
 
 def write_placeholder_pdf(path: Path, title: str, details: list[str]) -> None:
@@ -51,6 +66,13 @@ class ProfileService:
     def __init__(self) -> None:
         self.collection = mongo.db.profiles
         self.personal_collection = mongo.db.personal_info
+        self.disability_collection = mongo.db.disability_info
+        self.professional_collection = mongo.db.professional_profiles
+        self.experience_collection = mongo.db.work_experiences
+        self.education_collection = mongo.db.education_records
+        self.courses_collection = mongo.db.courses_certifications
+        self.languages_collection = mongo.db.languages
+        self.skills_collection = mongo.db.skills
         self.settings_collection = mongo.db.settings
         self.crypto = CryptoService()
 
@@ -82,6 +104,8 @@ class ProfileService:
 
     def upsert_personal_info(self, payload: dict) -> None:
         profile_id = payload["profileId"]
+        if payload.get("birthDate"):
+            payload["ageCalculated"] = _calculate_age(payload["birthDate"])
         for field in ["address", "documentNumber"]:
             if payload.get(field):
                 payload[f"{field}Encrypted"] = self.crypto.encrypt(payload[field])
@@ -95,6 +119,127 @@ class ProfileService:
 
     def get_personal_info(self, profile_id: str) -> dict:
         return self.personal_collection.find_one({"profileId": profile_id}, {"_id": 0}) or {}
+
+    def upsert_disability_info(self, profile_id: str, payload: dict) -> None:
+        if payload.get("accessibilityResources"):
+            payload["accessibilityResourcesEncrypted"] = self.crypto.encrypt(payload["accessibilityResources"])
+            del payload["accessibilityResources"]
+        payload["profileId"] = profile_id
+        payload["updatedAt"] = datetime.utcnow()
+        self.disability_collection.update_one(
+            {"profileId": profile_id}, {"$set": payload}, upsert=True
+        )
+
+    def get_disability_info(self, profile_id: str) -> dict:
+        return self.disability_collection.find_one({"profileId": profile_id}, {"_id": 0}) or {}
+
+    def upsert_professional_header(self, profile_id: str, payload: dict) -> None:
+        payload["profileId"] = profile_id
+        payload["updatedAt"] = datetime.utcnow()
+        self.professional_collection.update_one(
+            {"profileId": profile_id}, {"$set": payload}, upsert=True
+        )
+
+    def get_professional_header(self, profile_id: str) -> dict:
+        return self.professional_collection.find_one({"profileId": profile_id}, {"_id": 0}) or {}
+
+    def add_experience(self, profile_id: str, payload: dict) -> dict:
+        doc = {
+            "experienceId": str(uuid.uuid4()),
+            "profileId": profile_id,
+            "position": payload.get("position", ""),
+            "company": payload.get("company", ""),
+            "area": payload.get("area", ""),
+            "startDate": payload.get("startDate", ""),
+            "endDate": payload.get("endDate", ""),
+            "isCurrent": bool(payload.get("isCurrent", False)),
+            "description": payload.get("description", ""),
+            "technologies": payload.get("technologies", []),
+            "references": payload.get("references", ""),
+            "supportDocumentIds": payload.get("supportDocumentIds", []),
+            "createdAt": datetime.utcnow(),
+        }
+        self.experience_collection.insert_one(doc)
+        return doc
+
+    def list_experiences(self, profile_id: str) -> list[dict]:
+        return list(self.experience_collection.find({"profileId": profile_id}, {"_id": 0}).sort("createdAt", -1))
+
+    def add_education(self, profile_id: str, payload: dict) -> dict:
+        doc = {
+            "educationId": str(uuid.uuid4()),
+            "profileId": profile_id,
+            "level": payload.get("level", ""),
+            "institution": payload.get("institution", ""),
+            "status": payload.get("status", ""),
+            "gradeOrCycle": payload.get("gradeOrCycle", ""),
+            "condition": payload.get("condition", ""),
+            "startDate": payload.get("startDate", ""),
+            "endDate": payload.get("endDate", ""),
+            "createdAt": datetime.utcnow(),
+        }
+        self.education_collection.insert_one(doc)
+        return doc
+
+    def list_education(self, profile_id: str) -> list[dict]:
+        return list(self.education_collection.find({"profileId": profile_id}, {"_id": 0}).sort("createdAt", -1))
+
+    def add_course(self, profile_id: str, payload: dict) -> dict:
+        doc = {
+            "itemId": str(uuid.uuid4()),
+            "profileId": profile_id,
+            "name": payload.get("name", ""),
+            "institution": payload.get("institution", ""),
+            "durationHours": payload.get("durationHours", ""),
+            "durationMinutes": payload.get("durationMinutes", ""),
+            "startDate": payload.get("startDate", ""),
+            "endDate": payload.get("endDate", ""),
+            "isCertified": bool(payload.get("isCertified", False)),
+            "certificationUrl": payload.get("certificationUrl", ""),
+            "fileDocumentId": payload.get("fileDocumentId", ""),
+            "createdAt": datetime.utcnow(),
+        }
+        self.courses_collection.insert_one(doc)
+        return doc
+
+    def list_courses(self, profile_id: str) -> list[dict]:
+        return list(self.courses_collection.find({"profileId": profile_id}, {"_id": 0}).sort("createdAt", -1))
+
+    def add_language(self, profile_id: str, payload: dict) -> dict:
+        doc = {
+            "languageId": str(uuid.uuid4()),
+            "profileId": profile_id,
+            "name": payload.get("name", ""),
+            "speakingLevel": payload.get("speakingLevel", ""),
+            "listeningLevel": payload.get("listeningLevel", ""),
+            "writingLevel": payload.get("writingLevel", ""),
+            "isSelfTaught": bool(payload.get("isSelfTaught", False)),
+            "createdAt": datetime.utcnow(),
+        }
+        self.languages_collection.insert_one(doc)
+        return doc
+
+    def list_languages(self, profile_id: str) -> list[dict]:
+        return list(self.languages_collection.find({"profileId": profile_id}, {"_id": 0}).sort("createdAt", -1))
+
+    def add_skill(self, profile_id: str, payload: dict) -> dict:
+        doc = {
+            "skillId": str(uuid.uuid4()),
+            "profileId": profile_id,
+            "name": payload.get("name", ""),
+            "category": payload.get("category", ""),
+            "speakingLevel": payload.get("speakingLevel", ""),
+            "listeningLevel": payload.get("listeningLevel", ""),
+            "writingLevel": payload.get("writingLevel", ""),
+            "selfAssessment": payload.get("selfAssessment", ""),
+            "notes": payload.get("notes", ""),
+            "createdAt": datetime.utcnow(),
+        }
+        self.skills_collection.insert_one(doc)
+        return doc
+
+    def list_skills(self, profile_id: str) -> list[dict]:
+        return list(self.skills_collection.find({"profileId": profile_id}, {"_id": 0}).sort("createdAt", -1))
 
     def get_exportable_active_profile(self) -> dict | None:
         profile = self.get_active_profile()

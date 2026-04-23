@@ -14,9 +14,11 @@ IAnGogh/data/backups/*
 IAnGogh/data/exports/*
 IAnGogh/data/temp/*
 IAnGogh/data/logs/*
+IAnGogh/data/documents/*
 
 # Keep folders
 !IAnGogh/data/backups/.gitkeep
 !IAnGogh/data/exports/.gitkeep
 !IAnGogh/data/temp/.gitkeep
 !IAnGogh/data/logs/.gitkeep
+!IAnGogh/data/documents/.gitkeep

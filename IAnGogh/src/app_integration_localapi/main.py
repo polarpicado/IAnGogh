@@ -18,6 +18,33 @@ from app_infrastructure.mongo import mongo
 app = FastAPI(title="IAnGogh Local API", version="0.1.0")
 templates = Jinja2Templates(directory=str((CONFIG.base_dir / "src" / "app_desktop" / "templates")))
 
+AREA_TAXONOMY = [
+    "Administracion", "Agroindustria", "Analitica", "Arquitectura", "Atencion al cliente", "Auditoria",
+    "Automatizacion", "Backend", "Banca", "Biotecnologia", "Business Intelligence", "Calidad",
+    "Capacitacion", "Ciberseguridad", "Ciencia de datos", "Comercial", "Compras", "Comunicaciones",
+    "Compliance", "Construccion", "Contabilidad", "Control de gestion", "DevOps", "Derecho",
+    "Diseno UX", "Diseno UI", "Ecommerce", "Educacion", "Electricidad", "Energia",
+    "Farmacia", "Finanzas", "Frontend", "Gestion de proyectos", "Gobierno TI", "Help Desk",
+    "Hoteleria", "IA", "Infraestructura", "Ingenieria civil", "Ingenieria industrial", "Integraciones",
+    "Investigacion", "IoT", "Legal", "Logistica", "Manufactura", "Marketing",
+    "Mecanica", "Medicina", "Mineria", "Mobile", "Negocios", "Networking",
+    "Operaciones", "Planeamiento", "Postventa", "Power BI", "Preventa", "Procurement",
+    "Producto", "Produccion", "QA", "Recursos humanos", "Redes", "RPA",
+    "SAP", "Salesforce", "Salud", "Seguridad", "Seguridad ocupacional", "Soporte TI",
+    "SQL", "SRE", "Telecomunicaciones", "Testing", "Transformacion digital", "Transporte",
+    "Turismo", "Ventas", "Vision por computadora", "Web", "WordPress", "Otros"
+]
+
+DISABILITY_TREE = {
+    "auditiva": ["leve", "moderada", "severa", "profunda", "cofosis"],
+    "fisica": ["hemiplejia", "paraplejia", "tetraplejia", "amputacion", "movilidad_reducida"],
+    "habla": ["disartria", "afasia", "tartamudez", "apraxia_habla"],
+    "mental": ["intelectual_leve", "intelectual_moderada", "intelectual_severa"],
+    "psicosocial": ["ansiedad", "depresion", "bipolaridad", "esquizofrenia"],
+    "rehabilitado": ["accidente_laboral", "enfermedad_profesional", "post_quirurgico"],
+    "visual": ["baja_vision", "ceguera_parcial", "ceguera_total", "daltonismo_severo"],
+}
+
 I18N = {
     "es": {
         "title": "IAnGogh MVP",
@@ -36,6 +63,10 @@ I18N = {
 }
 
 
+def _csv_to_list(raw: str) -> list[str]:
+    return [x.strip() for x in (raw or "").split(",") if x.strip()]
+
+
 @app.get("/")
 def dashboard(
     request: Request,
@@ -45,7 +76,28 @@ def dashboard(
     t = I18N.get(lang, I18N["es"])
     active = profile_service.get_active_profile()
     jobs = job_service.list_by_profile(active["profileId"]) if active else []
-    personal = profile_service.get_personal_info(active["profileId"]) if active else {}
+
+    personal = {}
+    disability = {}
+    professional = {}
+    experiences = []
+    education = []
+    courses = []
+    languages = []
+    skills = []
+    documents = []
+
+    if active:
+        profile_id = active["profileId"]
+        personal = profile_service.get_personal_info(profile_id)
+        disability = profile_service.get_disability_info(profile_id)
+        professional = profile_service.get_professional_header(profile_id)
+        experiences = profile_service.list_experiences(profile_id)
+        education = profile_service.list_education(profile_id)
+        courses = profile_service.list_courses(profile_id)
+        languages = profile_service.list_languages(profile_id)
+        skills = profile_service.list_skills(profile_id)
+        documents = document_service.list_documents(profile_id)
 
     return templates.TemplateResponse(
         request,
@@ -57,9 +109,18 @@ def dashboard(
             "profiles": profile_service.list_profiles(),
             "jobs": jobs,
             "personal": personal,
-            "documents": document_service.list_documents(active["profileId"]) if active else [],
+            "disability": disability,
+            "professional": professional,
+            "experiences": experiences,
+            "education": education,
+            "courses": courses,
+            "languages": languages,
+            "skills": skills,
+            "documents": documents,
             "applications": application_service.pending(),
             "manual": application_service.list_manual_review(),
+            "area_taxonomy": AREA_TAXONOMY,
+            "disability_tree": DISABILITY_TREE,
         },
     )
 
@@ -86,26 +147,226 @@ def ui_save_personal(
     profile_id: str,
     first_name: str = Form(default=""),
     last_name: str = Form(default=""),
-    emails_csv: str = Form(default=""),
-    country_of_residence: str = Form(default=""),
-    address: str = Form(default=""),
-    phones_csv: str = Form(default=""),
+    display_name: str = Form(default=""),
+    birth_date: str = Form(default=""),
     document_type: str = Form(default=""),
+    document_type_other: str = Form(default=""),
     document_number: str = Form(default=""),
+    email_personal: str = Form(default=""),
+    email_university: str = Form(default=""),
+    email_corporate: str = Form(default=""),
+    email_others_csv: str = Form(default=""),
+    phone_prefix: str = Form(default="+51"),
+    phone_main: str = Form(default=""),
+    phone_optional: str = Form(default=""),
+    country_of_residence: str = Form(default=""),
+    country_of_birth: str = Form(default=""),
+    postal_code: str = Form(default=""),
+    address: str = Form(default=""),
+    gender: str = Form(default=""),
+    has_children: str = Form(default="no"),
+    marital_status: str = Form(default=""),
 ):
+    selected_doc_type = document_type_other if document_type == "Otro" else document_type
+    emails = [email_personal, email_university, email_corporate] + _csv_to_list(email_others_csv)
+    phones = []
+    if phone_main:
+        phones.append(f"{phone_prefix} {phone_main}".strip())
+    if phone_optional:
+        phones.append(f"{phone_prefix} {phone_optional}".strip())
+
     payload = {
         "profileId": profile_id,
         "firstName": first_name,
         "lastName": last_name,
-        "emails": [e.strip() for e in emails_csv.split(",") if e.strip()],
+        "displayName": display_name,
+        "birthDate": birth_date,
         "countryOfResidence": country_of_residence,
+        "countryOfBirth": country_of_birth,
+        "postalCode": postal_code,
         "address": address,
-        "phones": [p.strip() for p in phones_csv.split(",") if p.strip()],
-        "documentType": document_type,
+        "gender": gender,
+        "maritalStatus": marital_status,
+        "hasChildren": has_children == "si",
+        "emails": [e for e in emails if e],
+        "phones": phones,
+        "documentType": selected_doc_type,
         "documentNumber": document_number,
     }
     profile_service.upsert_personal_info(payload)
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/disability")
+def ui_save_disability(
+    profile_id: str,
+    has_disability: str = Form(default="no"),
+    disability_types_csv: str = Form(default=""),
+    disability_sublevels_csv: str = Form(default=""),
+    disability_percentage: str = Form(default=""),
+    accessibility_resources: str = Form(default=""),
+    report_document_id: str = Form(default=""),
+    consent_accepted: str = Form(default="no"),
+):
+    payload = {
+        "hasDisability": has_disability == "si",
+        "disabilityTypes": _csv_to_list(disability_types_csv),
+        "disabilitySublevels": _csv_to_list(disability_sublevels_csv),
+        "disabilityPercentage": disability_percentage,
+        "accessibilityResources": accessibility_resources,
+        "reportDocumentId": report_document_id,
+        "consentAccepted": consent_accepted == "si",
+    }
+    profile_service.upsert_disability_info(profile_id, payload)
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/professional")
+def ui_save_professional(
+    profile_id: str,
+    professional_title: str = Form(default=""),
+    summary: str = Form(default=""),
+    desired_roles_csv: str = Form(default=""),
+):
+    payload = {
+        "professionalTitle": professional_title,
+        "summary": summary,
+        "desiredRoles": _csv_to_list(desired_roles_csv),
+    }
+    profile_service.upsert_professional_header(profile_id, payload)
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/experiences/add")
+def ui_add_experience(
+    profile_id: str,
+    position: str = Form(default=""),
+    company: str = Form(default=""),
+    area: str = Form(default=""),
+    start_date: str = Form(default=""),
+    end_date: str = Form(default=""),
+    is_current: str = Form(default="no"),
+    description: str = Form(default=""),
+    technologies_csv: str = Form(default=""),
+    references: str = Form(default=""),
+):
+    profile_service.add_experience(
+        profile_id,
+        {
+            "position": position,
+            "company": company,
+            "area": area,
+            "startDate": start_date,
+            "endDate": end_date,
+            "isCurrent": is_current == "si",
+            "description": description,
+            "technologies": _csv_to_list(technologies_csv),
+            "references": references,
+        },
+    )
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/education/add")
+def ui_add_education(
+    profile_id: str,
+    level: str = Form(default=""),
+    institution: str = Form(default=""),
+    status: str = Form(default=""),
+    grade_or_cycle: str = Form(default=""),
+    condition: str = Form(default=""),
+    start_date: str = Form(default=""),
+    end_date: str = Form(default=""),
+):
+    profile_service.add_education(
+        profile_id,
+        {
+            "level": level,
+            "institution": institution,
+            "status": status,
+            "gradeOrCycle": grade_or_cycle,
+            "condition": condition,
+            "startDate": start_date,
+            "endDate": end_date,
+        },
+    )
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/courses/add")
+def ui_add_course(
+    profile_id: str,
+    name: str = Form(default=""),
+    institution: str = Form(default=""),
+    duration_hours: str = Form(default=""),
+    duration_minutes: str = Form(default=""),
+    start_date: str = Form(default=""),
+    end_date: str = Form(default=""),
+    is_certified: str = Form(default="no"),
+    certification_url: str = Form(default=""),
+):
+    profile_service.add_course(
+        profile_id,
+        {
+            "name": name,
+            "institution": institution,
+            "durationHours": duration_hours,
+            "durationMinutes": duration_minutes,
+            "startDate": start_date,
+            "endDate": end_date,
+            "isCertified": is_certified == "si",
+            "certificationUrl": certification_url,
+        },
+    )
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/languages/add")
+def ui_add_language(
+    profile_id: str,
+    name: str = Form(default=""),
+    speaking_level: str = Form(default=""),
+    listening_level: str = Form(default=""),
+    writing_level: str = Form(default=""),
+    is_self_taught: str = Form(default="no"),
+):
+    profile_service.add_language(
+        profile_id,
+        {
+            "name": name,
+            "speakingLevel": speaking_level,
+            "listeningLevel": listening_level,
+            "writingLevel": writing_level,
+            "isSelfTaught": is_self_taught == "si",
+        },
+    )
+    return RedirectResponse(url="/?tab=granular", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/skills/add")
+def ui_add_skill(
+    profile_id: str,
+    name: str = Form(default=""),
+    category: str = Form(default=""),
+    speaking_level: str = Form(default=""),
+    listening_level: str = Form(default=""),
+    writing_level: str = Form(default=""),
+    self_assessment: str = Form(default=""),
+    notes: str = Form(default=""),
+):
+    profile_service.add_skill(
+        profile_id,
+        {
+            "name": name,
+            "category": category,
+            "speakingLevel": speaking_level,
+            "listeningLevel": listening_level,
+            "writingLevel": writing_level,
+            "selfAssessment": self_assessment,
+            "notes": notes,
+        },
+    )
+    return RedirectResponse(url="/?tab=granular", status_code=303)
 
 
 @app.post("/ui/documents/ingest")
