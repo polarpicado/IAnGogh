@@ -24,19 +24,20 @@
       padding: 12px;
       box-sizing: border-box;
     }
-    .card {
-      width: min(96vw, 460px);
-      background: var(--surface);
-      border-radius: 14px;
-      border: 1px solid rgba(47,156,149,.45);
-      padding: 20px;
+    .box {
+      width: min(96vw, 560px);
+      border: 1px solid rgba(47,156,149,.35);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(20,35,38,.72);
       box-sizing: border-box;
     }
-    h1 { margin: 0 0 8px; font-size: 1.2rem; }
-    p { margin: 0 0 14px; opacity: .85; }
-    .box { border: 1px solid rgba(47,156,149,.35); border-radius: 12px; padding: 14px; }
-    h2 { margin: 0 0 6px; font-size: 1rem; }
-    label { display: block; margin: 10px 0 5px; font-size: .9rem; }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    label { display: block; margin: 10px 0 5px; font-size: .95rem; }
     input {
       width: 100%;
       box-sizing: border-box;
@@ -44,7 +45,8 @@
       border: 1px solid var(--line);
       background: rgba(255,255,255,.06);
       color: inherit;
-      padding: 9px;
+      padding: 10px;
+      font-size: .95rem;
     }
     .btn {
       margin-top: 14px;
@@ -56,14 +58,11 @@
       color: white;
       cursor: pointer;
       font-weight: 600;
+      font-size: 1rem;
     }
-    .btn.link {
-      background: transparent;
-      border: 1px solid rgba(47,156,149,.7);
-    }
-    .hint { margin-top: 12px; font-size: .85rem; opacity: .8; }
+    .hint { margin-top: 12px; font-size: .95rem; opacity: .9; text-align: left; }
     .msg {
-      margin-top: 8px;
+      margin-bottom: 10px;
       background: rgba(244,185,66,.2);
       color: var(--warn);
       border: 1px solid rgba(244,185,66,.8);
@@ -72,7 +71,7 @@
       font-size: .9rem;
     }
     .ok {
-      margin-top: 8px;
+      margin-bottom: 10px;
       background: rgba(47,156,149,.2);
       color: #9df0e8;
       border: 1px solid rgba(47,156,149,.8);
@@ -81,14 +80,10 @@
       font-size: .9rem;
     }
     .hidden { display: none; }
-    code { font-family: Consolas, monospace; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Acceso IAnGogh</h1>
-    <p>Inicia sesión para entrar al panel.</p>
-
+  <div class="box" id="login-box">
     {% if error %}
       <div class="msg">Credenciales inválidas. Usa usuario o correo + contraseña.</div>
     {% endif %}
@@ -102,31 +97,39 @@
       <div class="ok">Cuenta creada. Ya puedes iniciar sesión.</div>
     {% endif %}
 
-    <div class="box" id="login-box">
-      <h2>Iniciar Sesión</h2>
-      <form method="post" action="/login">
-        <label>Usuario o correo</label>
-        <input name="username_or_email" autocomplete="username" required />
-        <label>Contraseña</label>
-        <input name="password" type="password" autocomplete="current-password" required />
-        <button class="btn" type="submit">Ingresar</button>
-      </form>
-      <button id="show-register" class="btn link" type="button">Si no tienes cuenta, Regístrate</button>
-      <div class="hint">Demo: <code>user</code> / <code>user</code></div>
+    <h2>Iniciar Sesión</h2>
+    <form method="post" action="/login">
+      <label>Usuario o correo</label>
+      <input name="username_or_email" placeholder="Ingresa tu usuario o correo" autocomplete="username" required />
+      <label>Contraseña</label>
+      <input name="password" type="password" autocomplete="current-password" required />
+      <button class="btn" type="submit">Ingresar</button>
+    </form>
+    <div class="hint">
+      <a id="show-register" href="#" style="color:#9df0e8;text-decoration:none;">¿No tienes cuenta? ¡Regístrate!</a>
     </div>
+  </div>
 
-    <div class="box hidden" id="register-box" style="margin-top:12px;">
-      <h2>Crear Cuenta</h2>
-      <form method="post" action="/register">
-        <label>Correo</label>
-        <input name="email" type="email" required />
-        <label>Usuario</label>
-        <input name="username" required />
-        <label>Contraseña</label>
-        <input name="password" type="password" required />
-        <button class="btn" type="submit">Registrarme</button>
-      </form>
-      <button id="show-login" class="btn link" type="button">Volver al login</button>
+  <div class="box hidden" id="register-box">
+    {% if reg_error %}
+      <div class="msg">Completa correo, usuario y contraseña para registrarte.</div>
+    {% endif %}
+    {% if reg_exists %}
+      <div class="msg">Ese usuario o correo ya existe.</div>
+    {% endif %}
+
+    <h2>Crear Cuenta</h2>
+    <form method="post" action="/register">
+      <label>Correo</label>
+      <input name="email" type="email" required />
+      <label>Usuario</label>
+      <input name="username" required />
+      <label>Contraseña</label>
+      <input name="password" type="password" required />
+      <button class="btn" type="submit">Registrarme</button>
+    </form>
+    <div class="hint">
+      <a id="show-login" href="#" style="color:#9df0e8;text-decoration:none;">Volver al login</a>
     </div>
   </div>
 
@@ -136,12 +139,14 @@
     const loginBox = document.getElementById('login-box');
     const registerBox = document.getElementById('register-box');
 
-    showRegister?.addEventListener('click', () => {
+    showRegister?.addEventListener('click', (e) => {
+      e.preventDefault();
       loginBox.classList.add('hidden');
       registerBox.classList.remove('hidden');
     });
 
-    showLogin?.addEventListener('click', () => {
+    showLogin?.addEventListener('click', (e) => {
+      e.preventDefault();
       registerBox.classList.add('hidden');
       loginBox.classList.remove('hidden');
     });
