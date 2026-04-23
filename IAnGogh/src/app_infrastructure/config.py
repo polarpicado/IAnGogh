@@ -17,7 +17,8 @@ class AppConfig:
     app_locale: str = os.getenv("APP_LOCALE", "es")
     app_theme: str = os.getenv("APP_THEME", "dark")
 
-    base_dir: Path = Path("IAnGogh").resolve()
+    # Resolve project root from this file location to avoid cwd-dependent paths.
+    base_dir: Path = Path(__file__).resolve().parents[2]
     data_dir: Path = base_dir / "data"
     contracts_dir: Path = base_dir / "contracts"
 
