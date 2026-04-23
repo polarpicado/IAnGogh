@@ -1,6 +1,0 @@
-app_core
-app_desktop
-app_domain
-app_infrastructure
-app_integration_localapi
-main
