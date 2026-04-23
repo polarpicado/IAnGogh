@@ -299,7 +299,7 @@ def ui_save_personal(
         "documentNumber": document_number,
     }
     profile_service.upsert_personal_info(payload)
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/disability")
@@ -323,7 +323,7 @@ def ui_save_disability(
         "consentAccepted": consent_accepted == "si",
     }
     profile_service.upsert_disability_info(profile_id, payload)
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/professional")
@@ -339,7 +339,7 @@ def ui_save_professional(
         "desiredRoles": _csv_to_list(desired_roles_csv),
     }
     profile_service.upsert_professional_header(profile_id, payload)
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/experiences/add")
@@ -369,7 +369,7 @@ def ui_add_experience(
             "references": references,
         },
     )
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/education/add")
@@ -395,7 +395,7 @@ def ui_add_education(
             "endDate": end_date,
         },
     )
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/courses/add")
@@ -423,7 +423,7 @@ def ui_add_course(
             "certificationUrl": certification_url,
         },
     )
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/languages/add")
@@ -445,7 +445,7 @@ def ui_add_language(
             "isSelfTaught": is_self_taught == "si",
         },
     )
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/profiles/{profile_id}/skills/add")
@@ -471,7 +471,7 @@ def ui_add_skill(
             "notes": notes,
         },
     )
-    return RedirectResponse(url="/?tab=granular", status_code=303)
+    return RedirectResponse(url="/?tab=ingreso-datos", status_code=303)
 
 
 @app.post("/ui/documents/ingest")
@@ -698,3 +698,4 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
+

@@ -64,15 +64,15 @@
   </nav>
   <main>
     <div class="tabs">
-      <button class="tab-btn active" data-tab="profiles">Perfiles</button>
-      <button class="tab-btn" data-tab="granular">Granular</button>
+      <button class="tab-btn active" data-tab="ingreso-datos">Ingreso de datos</button>
+      <button class="tab-btn" data-tab="profiles">Perfiles</button>
       <button class="tab-btn" data-tab="documents">Documentos</button>
       <button class="tab-btn" data-tab="jobs">Vacantes</button>
       <button class="tab-btn" data-tab="applications">Postulaciones</button>
       <button class="tab-btn" data-tab="manual">Manual</button>
     </div>
 
-    <section id="tab-profiles" class="tab-panel active card">
+    <section id="tab-profiles" class="tab-panel card">
       <h2>{{ t.profiles }}</h2>
       <form method="post" action="/ui/profiles/create" class="field-grid">
         <div><label>Nombre de perfil</label><input name="display_name" required placeholder="Perfil RPA"/></div>
@@ -98,7 +98,7 @@
       </table>
     </section>
 
-    <section id="tab-granular" class="tab-panel">
+    <section id="tab-ingreso-datos" class="tab-panel active">
       {% if active %}
       <div class="card">
         <h2>A) Informacion Personal</h2>
@@ -343,7 +343,7 @@
         </div>
       </div>
       {% else %}
-      <div class="card"><p>Activa o crea un perfil para trabajar el modulo granular.</p></div>
+      <div class="card"><p>Activa o crea un perfil para trabajar el módulo de ingreso de datos.</p></div>
       {% endif %}
     </section>
 
@@ -429,7 +429,11 @@
   buttons.forEach(btn => {
     btn.addEventListener('click', () => activateTab(btn.dataset.tab));
   });
-  if (urlTab) activateTab(urlTab);
+  if (urlTab) {
+    activateTab(urlTab);
+  } else {
+    activateTab('ingreso-datos');
+  }
 
   const birthDate = document.getElementById('birth_date');
   const ageCalc = document.getElementById('age_calc');
