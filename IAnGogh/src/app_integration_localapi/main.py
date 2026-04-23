@@ -1,7 +1,7 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Form, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
 
@@ -24,7 +24,7 @@ I18N = {
         "profiles": "Perfiles",
         "jobs": "Vacantes",
         "applications": "Postulaciones Pendientes",
-        "manual": "Revisión Manual",
+        "manual": "Revision Manual",
     },
     "en": {
         "title": "IAnGogh MVP",
@@ -45,6 +45,7 @@ def dashboard(
     t = I18N.get(lang, I18N["es"])
     active = profile_service.get_active_profile()
     jobs = job_service.list_by_profile(active["profileId"]) if active else []
+    personal = profile_service.get_personal_info(active["profileId"]) if active else {}
 
     return templates.TemplateResponse(
         request,
@@ -55,10 +56,115 @@ def dashboard(
             "active": active,
             "profiles": profile_service.list_profiles(),
             "jobs": jobs,
+            "personal": personal,
+            "documents": document_service.list_documents(active["profileId"]) if active else [],
             "applications": application_service.pending(),
             "manual": application_service.list_manual_review(),
         },
     )
+
+
+@app.post("/ui/profiles/create")
+def ui_create_profile(
+    display_name: str = Form(...),
+    professional_title: str = Form(default=""),
+):
+    profile_service.create_profile(display_name=display_name, professional_title=professional_title)
+    return RedirectResponse(url="/", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/activate")
+def ui_activate_profile(profile_id: str):
+    profile = profile_service.get_profile(profile_id)
+    if profile:
+        profile_service.set_active_profile(profile_id)
+    return RedirectResponse(url="/", status_code=303)
+
+
+@app.post("/ui/profiles/{profile_id}/personal")
+def ui_save_personal(
+    profile_id: str,
+    first_name: str = Form(default=""),
+    last_name: str = Form(default=""),
+    emails_csv: str = Form(default=""),
+    country_of_residence: str = Form(default=""),
+    address: str = Form(default=""),
+    phones_csv: str = Form(default=""),
+    document_type: str = Form(default=""),
+    document_number: str = Form(default=""),
+):
+    payload = {
+        "profileId": profile_id,
+        "firstName": first_name,
+        "lastName": last_name,
+        "emails": [e.strip() for e in emails_csv.split(",") if e.strip()],
+        "countryOfResidence": country_of_residence,
+        "address": address,
+        "phones": [p.strip() for p in phones_csv.split(",") if p.strip()],
+        "documentType": document_type,
+        "documentNumber": document_number,
+    }
+    profile_service.upsert_personal_info(payload)
+    return RedirectResponse(url="/", status_code=303)
+
+
+@app.post("/ui/documents/ingest")
+def ui_ingest_document(
+    profile_id: str = Form(...),
+    source_path: str = Form(...),
+    category: str = Form(default="cv"),
+):
+    try:
+        document_service.ingest_document(profile_id=profile_id, source_path=source_path, category=category, is_favorite=True)
+    except FileNotFoundError:
+        pass
+    return RedirectResponse(url="/", status_code=303)
+
+
+@app.post("/ui/jobs/mock")
+def ui_mock_job():
+    active = profile_service.get_active_profile()
+    if active:
+        job_service.add_extracted_jobs(
+            [
+                {
+                    "profileId": active["profileId"],
+                    "sourcePortal": "LinkedIn",
+                    "jobTitle": "Automation Engineer",
+                    "company": "Demo Corp",
+                    "location": "Lima",
+                    "country": "Peru",
+                    "workMode": "remote",
+                    "salaryText": "S/ 7,000 - S/ 9,000",
+                    "description": "Role created from dashboard for MVP flow testing",
+                    "requirements": "Python, APIs, UiPath",
+                    "technologiesRaw": "python,uipath,fastapi",
+                    "technologiesNormalized": ["python", "uipath", "fastapi"],
+                    "jobUrl": "https://example.com/mock-job",
+                    "score": 85,
+                    "priority": 1,
+                    "matchedSkills": ["python", "uipath"],
+                    "missingSkills": ["azure"],
+                    "recommendation": "apply",
+                    "duplicateKey": f"mock|demo|automation engineer|{active['profileId']}",
+                }
+            ]
+        )
+    return RedirectResponse(url="/", status_code=303)
+
+
+@app.post("/ui/applications/mock")
+def ui_mock_application():
+    active = profile_service.get_active_profile()
+    if active:
+        jobs = job_service.list_by_profile(active["profileId"])
+        if jobs:
+            application_service.create_pending(
+                profile_id=active["profileId"],
+                job_id=jobs[0]["jobId"],
+                portal=jobs[0]["sourcePortal"],
+            )
+    return RedirectResponse(url="/", status_code=303)
 
 
 @app.get("/api/health")
@@ -209,7 +315,6 @@ def backup_export(payload: dict | None = None):
 
 @app.post("/api/backup/import")
 def backup_import(_payload: dict):
-    # MVP intentionally guarded: import validation path to be completed next iteration.
     return {"ok": False, "message": "Import pipeline pending validation implementation."}
 
 

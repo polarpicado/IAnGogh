@@ -14,48 +14,135 @@
       --text-dark: #eaf4f1;
       --brand: #2f9c95;
       --accent: #f4b942;
+      --danger: #d95d5d;
     }
     body { margin:0; font-family: "Segoe UI", Tahoma, sans-serif; background: {{ 'var(--bg-dark)' if theme == 'dark' else 'var(--bg-light)' }}; color: {{ 'var(--text-dark)' if theme == 'dark' else 'var(--text-light)' }}; }
-    .layout { display:grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    .layout { display:grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
     nav { background: linear-gradient(180deg, #1f6b67, #184f4c); color:white; padding:22px; }
     nav h1 { font-size: 1.1rem; margin:0 0 1rem; }
     nav p { font-size: .9rem; opacity:.92; }
     main { padding: 22px; }
     .card { background: {{ 'var(--surface-dark)' if theme == 'dark' else 'var(--surface-light)' }}; border-radius: 14px; padding: 14px; margin-bottom: 14px; border: 1px solid rgba(47,156,149,.35); }
     table { width:100%; border-collapse: collapse; font-size:.9rem; }
-    th, td { text-align:left; padding:8px; border-bottom:1px solid rgba(127,127,127,.2); }
+    th, td { text-align:left; padding:8px; border-bottom:1px solid rgba(127,127,127,.2); vertical-align: top; }
     .chip { display:inline-block; background: rgba(244,185,66,.2); border:1px solid rgba(244,185,66,.7); padding:2px 8px; border-radius:999px; }
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 14px; }
+    .tab-btn { border:1px solid rgba(47,156,149,.45); background: transparent; color: inherit; padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+    .tab-btn.active { background: rgba(47,156,149,.24); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .field-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:10px; }
+    label { font-size:.8rem; opacity:.8; display:block; margin-bottom: 4px; }
+    input { width:100%; box-sizing:border-box; padding:8px; border-radius:8px; border:1px solid rgba(127,127,127,.35); background: rgba(255,255,255,.06); color: inherit; }
+    .btn { border:0; border-radius:8px; padding:8px 12px; cursor:pointer; color:white; background: var(--brand); }
+    .btn.warn { background: var(--accent); color:#222; }
+    .btn.danger { background: var(--danger); }
+    .row { display:flex; gap:10px; flex-wrap: wrap; align-items: center; }
+    .mt { margin-top: 10px; }
+    .mono { font-family: Consolas, monospace; font-size:.85rem; }
   </style>
 </head>
 <body>
 <div class="layout">
   <nav>
     <h1>{{ t.title }}</h1>
-    <p>API local + dashboard operativo.</p>
+    <p>Sistema maestro local + API para UiPath.</p>
+    <p class="mono">db: {{ 'mock' if not active else 'active' }}</p>
     {% if active %}
       <p><strong>Activo:</strong> {{ active.displayName }}</p>
-      <p><span class="chip">{{ active.professionalTitle }}</span></p>
+      <p><span class="chip">{{ active.professionalTitle or 'Sin titulo' }}</span></p>
+      <p class="mono">{{ active.profileId }}</p>
     {% else %}
       <p>No hay perfil activo.</p>
     {% endif %}
   </nav>
   <main>
-    <section class="card">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="profiles">Perfiles</button>
+      <button class="tab-btn" data-tab="personal">Personal</button>
+      <button class="tab-btn" data-tab="documents">Documentos</button>
+      <button class="tab-btn" data-tab="jobs">Vacantes</button>
+      <button class="tab-btn" data-tab="applications">Postulaciones</button>
+      <button class="tab-btn" data-tab="manual">Manual</button>
+    </div>
+
+    <section id="tab-profiles" class="tab-panel active card">
       <h2>{{ t.profiles }}</h2>
-      <table>
-        <thead><tr><th>Nombre</th><th>Título</th><th>Activo</th></tr></thead>
+      <form method="post" action="/ui/profiles/create" class="field-grid">
+        <div><label>Nombre de perfil</label><input name="display_name" required placeholder="Perfil RPA"/></div>
+        <div><label>Titulo profesional</label><input name="professional_title" placeholder="Automation Engineer"/></div>
+        <div class="row" style="align-items:end"><button class="btn" type="submit">Crear Perfil</button></div>
+      </form>
+      <table class="mt">
+        <thead><tr><th>Nombre</th><th>Titulo</th><th>Activo</th><th>Accion</th></tr></thead>
         <tbody>
           {% for p in profiles %}
-            <tr><td>{{ p.displayName }}</td><td>{{ p.professionalTitle }}</td><td>{{ p.isActive }}</td></tr>
+            <tr>
+              <td>{{ p.displayName }}</td>
+              <td>{{ p.professionalTitle }}</td>
+              <td>{{ p.isActive }}</td>
+              <td>
+                <form method="post" action="/ui/profiles/{{ p.profileId }}/activate">
+                  <button class="btn warn" type="submit">Activar</button>
+                </form>
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>
     </section>
 
-    <section class="card">
+    <section id="tab-personal" class="tab-panel card">
+      <h2>Datos Personales</h2>
+      {% if active %}
+      <form method="post" action="/ui/profiles/{{ active.profileId }}/personal" class="field-grid">
+        <div><label>Nombres</label><input name="first_name" value="{{ personal.firstName or '' }}"/></div>
+        <div><label>Apellidos</label><input name="last_name" value="{{ personal.lastName or '' }}"/></div>
+        <div><label>Emails (coma)</label><input name="emails_csv" value="{{ (personal.emails or []) | join(', ') }}"/></div>
+        <div><label>Pais residencia</label><input name="country_of_residence" value="{{ personal.countryOfResidence or '' }}"/></div>
+        <div><label>Direccion</label><input name="address"/></div>
+        <div><label>Telefonos (coma)</label><input name="phones_csv"/></div>
+        <div><label>Tipo doc</label><input name="document_type" value="{{ personal.documentType or '' }}"/></div>
+        <div><label>Numero doc</label><input name="document_number"/></div>
+        <div class="row" style="align-items:end"><button class="btn" type="submit">Guardar Datos</button></div>
+      </form>
+      {% else %}
+      <p>Activa un perfil para editar datos personales.</p>
+      {% endif %}
+    </section>
+
+    <section id="tab-documents" class="tab-panel card">
+      <h2>Documentos</h2>
+      {% if active %}
+      <form method="post" action="/ui/documents/ingest" class="field-grid">
+        <input type="hidden" name="profile_id" value="{{ active.profileId }}"/>
+        <div><label>Ruta local absoluta</label><input name="source_path" placeholder="C:\\Users\\...\\cv.docx"/></div>
+        <div><label>Categoria</label><input name="category" value="cv"/></div>
+        <div class="row" style="align-items:end"><button class="btn" type="submit">Registrar Documento</button></div>
+      </form>
+      <table class="mt">
+        <thead><tr><th>ID</th><th>Categoria</th><th>Original</th><th>PDF</th></tr></thead>
+        <tbody>
+          {% for d in documents %}
+          <tr>
+            <td class="mono">{{ d.documentId }}</td>
+            <td>{{ d.category }}</td>
+            <td class="mono">{{ d.originalPath }}</td>
+            <td class="mono">{{ d.pdfPath }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>Activa un perfil para manejar documentos.</p>
+      {% endif %}
+    </section>
+
+    <section id="tab-jobs" class="tab-panel card">
       <h2>{{ t.jobs }}</h2>
-      <table>
-        <thead><tr><th>Empresa</th><th>Puesto</th><th>Portal</th><th>Ubicación</th><th>Score</th><th>Estado</th></tr></thead>
+      <form method="post" action="/ui/jobs/mock"><button class="btn" type="submit">Crear Vacante Demo</button></form>
+      <table class="mt">
+        <thead><tr><th>Empresa</th><th>Puesto</th><th>Portal</th><th>Ubicacion</th><th>Score</th><th>Estado</th></tr></thead>
         <tbody>
           {% for j in jobs %}
             <tr><td>{{ j.company }}</td><td>{{ j.jobTitle }}</td><td>{{ j.sourcePortal }}</td><td>{{ j.location }}</td><td>{{ j.score }}</td><td>{{ j.appliedStatus }}</td></tr>
@@ -64,30 +151,44 @@
       </table>
     </section>
 
-    <section class="card">
+    <section id="tab-applications" class="tab-panel card">
       <h2>{{ t.applications }}</h2>
-      <table>
+      <form method="post" action="/ui/applications/mock"><button class="btn" type="submit">Crear Postulacion Demo</button></form>
+      <table class="mt">
         <thead><tr><th>ID</th><th>Portal</th><th>Estado</th><th>Captcha</th><th>Manual</th></tr></thead>
         <tbody>
           {% for a in applications %}
-            <tr><td>{{ a.applicationId }}</td><td>{{ a.portal }}</td><td>{{ a.status }}</td><td>{{ a.captchaEncountered }}</td><td>{{ a.manualInterventionRequired }}</td></tr>
+            <tr><td class="mono">{{ a.applicationId }}</td><td>{{ a.portal }}</td><td>{{ a.status }}</td><td>{{ a.captchaEncountered }}</td><td>{{ a.manualInterventionRequired }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </section>
 
-    <section class="card">
+    <section id="tab-manual" class="tab-panel card">
       <h2>{{ t.manual }}</h2>
       <table>
         <thead><tr><th>Tipo</th><th>Detalle</th><th>Fecha</th></tr></thead>
         <tbody>
           {% for m in manual %}
-            <tr><td>{{ m.type or 'manual_review' }}</td><td>{{ m.payload or m }}</td><td>{{ m.createdAt }}</td></tr>
+            <tr><td>{{ m.type or 'manual_review' }}</td><td class="mono">{{ m.payload or m }}</td><td>{{ m.createdAt }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </section>
   </main>
 </div>
+<script>
+  const buttons = [...document.querySelectorAll('.tab-btn')];
+  const panels = [...document.querySelectorAll('.tab-panel')];
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = document.getElementById('tab-' + btn.dataset.tab);
+      if (panel) panel.classList.add('active');
+    });
+  });
+</script>
 </body>
 </html>

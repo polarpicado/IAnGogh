@@ -93,6 +93,9 @@ class ProfileService:
             {"profileId": profile_id}, {"$set": payload}, upsert=True
         )
 
+    def get_personal_info(self, profile_id: str) -> dict:
+        return self.personal_collection.find_one({"profileId": profile_id}, {"_id": 0}) or {}
+
     def get_exportable_active_profile(self) -> dict | None:
         profile = self.get_active_profile()
         if not profile:
@@ -251,6 +254,22 @@ class ApplicationService:
         self.collection.update_one(
             {"applicationId": payload["applicationId"]}, {"$set": payload}, upsert=True
         )
+
+    def create_pending(self, profile_id: str, job_id: str, portal: str) -> dict:
+        payload = {
+            "applicationId": str(uuid.uuid4()),
+            "profileId": profile_id,
+            "jobId": job_id,
+            "portal": portal,
+            "startedAt": datetime.utcnow(),
+            "status": "pending",
+            "captchaEncountered": False,
+            "manualInterventionRequired": False,
+            "unknownFields": [],
+            "observations": "Created from dashboard mock flow",
+        }
+        self.collection.insert_one(payload)
+        return payload
 
     def manual_review(self, payload: dict) -> None:
         payload["createdAt"] = datetime.utcnow()
