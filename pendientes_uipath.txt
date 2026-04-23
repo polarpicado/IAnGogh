@@ -1,0 +1,55 @@
+﻿Pendientes UiPath (Elchapi)
+
+Objetivo general
+- Ejecutar automatización web de búsqueda y postulación sin acoplar la app maestra.
+
+Responsabilidades de UiPath
+- Navegar por portales de empleo.
+- Buscar vacantes según perfil activo y configuración recibida.
+- Extraer datos de ofertas y normalizar campos base.
+- Scorear vacantes con reglas o IA (según contrato acordado).
+- Abrir formularios de postulación y mapear campos.
+- Completar formularios con datos mínimos permitidos.
+- Manejar captcha con pausa/reanudación.
+- Devolver resultados, errores y alertas de revisión manual.
+
+Contratos de intercambio a consumir/producir
+- Consumir: active_profile.json
+- Producir: extracted_jobs.json
+- Consumir: pending_applications.json
+- Producir: application_result.json
+- Producir: manual_review_alert.json
+
+Campos mínimos que UiPath debe devolver por vacante
+- sourcePortal
+- jobTitle
+- company
+- location
+- country
+- workMode
+- salaryText
+- postedDateText
+- description
+- requirements
+- technologiesRaw
+- jobUrl
+- extractedAt
+- duplicateKey
+
+Manejo de errores y eventos
+- Reportar campos desconocidos y mapeo fallido.
+- Reportar captchas encontrados y estado de espera.
+- Adjuntar evidencia (screenshot/logRef) cuando aplique.
+- No exponer datos sensibles en logs.
+
+Límites operativos
+- No prometer compatibilidad universal con todos los portales.
+- Trabajar por portales objetivo y catálogo de alias de campos.
+- Pausar y solicitar intervención cuando no haya mapeo seguro.
+
+Entregables inmediatos para Elchapi/Joao
+- Definir lista inicial de portales objetivo.
+- Definir diccionario de alias de campos por portal.
+- Preparar flujo de prueba con vacantes simuladas.
+- Validar formato final de JSON de entrada/salida.
+- Probar ciclo completo: buscar -> extraer -> devolver -> postular -> reportar.
