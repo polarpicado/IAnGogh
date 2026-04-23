@@ -1,0 +1,85 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>IAnGogh Login</title>
+  <style>
+    :root {
+      --bg: #0c1618;
+      --surface: #142326;
+      --text: #eaf4f1;
+      --brand: #2f9c95;
+      --warn: #f4b942;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #1f6b67, #0c1618 55%);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+    }
+    .card {
+      width: min(92vw, 420px);
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid rgba(47,156,149,.45);
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.2rem; }
+    p { margin: 0 0 14px; opacity: .85; }
+    label { display: block; margin: 10px 0 5px; font-size: .9rem; }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid rgba(127,127,127,.35);
+      background: rgba(255,255,255,.06);
+      color: inherit;
+      padding: 9px;
+    }
+    .btn {
+      margin-top: 14px;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--brand);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .hint { margin-top: 12px; font-size: .85rem; opacity: .8; }
+    .error {
+      margin-top: 8px;
+      background: rgba(244,185,66,.2);
+      color: var(--warn);
+      border: 1px solid rgba(244,185,66,.8);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: .9rem;
+    }
+    code { font-family: Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Acceso IAnGogh</h1>
+    <p>Inicia sesion para entrar al panel.</p>
+    {% if error %}
+      <div class="error">Credenciales invalidas. Intenta nuevamente.</div>
+    {% endif %}
+    <form method="post" action="/login">
+      <label>Usuario</label>
+      <input name="username" autocomplete="username" required />
+      <label>Contrasena</label>
+      <input name="password" type="password" autocomplete="current-password" required />
+      <button class="btn" type="submit">Ingresar</button>
+    </form>
+    <div class="hint">Demo: <code>user</code> / <code>user</code></div>
+  </div>
+</body>
+</html>

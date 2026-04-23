@@ -17,6 +17,9 @@ from app_infrastructure.mongo import mongo
 
 app = FastAPI(title="IAnGogh Local API", version="0.1.0")
 templates = Jinja2Templates(directory=str((CONFIG.base_dir / "src" / "app_desktop" / "templates")))
+AUTH_COOKIE = "iangogh_auth"
+LOGIN_USER = "user"
+LOGIN_PASSWORD = "user"
 
 AREA_TAXONOMY = [
     "Administracion", "Agroindustria", "Analitica", "Arquitectura", "Atencion al cliente", "Auditoria",
@@ -65,6 +68,52 @@ I18N = {
 
 def _csv_to_list(raw: str) -> list[str]:
     return [x.strip() for x in (raw or "").split(",") if x.strip()]
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    public_paths = {"/login", "/api/health"}
+    if path in public_paths:
+        return await call_next(request)
+    if request.cookies.get(AUTH_COOKIE) != "1":
+        return RedirectResponse(url="/login", status_code=303)
+    return await call_next(request)
+
+
+@app.get("/login")
+def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"error": request.query_params.get("error", "")},
+    )
+
+
+@app.post("/login")
+def login_submit(
+    username: str = Form(...),
+    password: str = Form(...),
+):
+    if username != LOGIN_USER or password != LOGIN_PASSWORD:
+        return RedirectResponse(url="/login?error=1", status_code=303)
+
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie(
+        key=AUTH_COOKIE,
+        value="1",
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 12,
+    )
+    return response
+
+
+@app.post("/logout")
+def logout():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(AUTH_COOKIE)
+    return response
 
 
 @app.get("/")

@@ -58,6 +58,9 @@
     {% else %}
       <p>No hay perfil activo.</p>
     {% endif %}
+    <form method="post" action="/logout" class="mt">
+      <button class="btn warn" type="submit">Cerrar Sesion</button>
+    </form>
   </nav>
   <main>
     <div class="tabs">
