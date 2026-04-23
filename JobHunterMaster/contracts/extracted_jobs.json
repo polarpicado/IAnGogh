@@ -1,0 +1,30 @@
+﻿{
+  "jobs": [
+    {
+      "profileId": "profile-001",
+      "sourcePortal": "LinkedIn",
+      "searchKeyword": "uipath remote",
+      "jobTitle": "RPA Developer",
+      "company": "Acme Corp",
+      "location": "Lima",
+      "country": "Peru",
+      "workMode": "remote",
+      "salaryText": "S/ 6,000 - S/ 8,000",
+      "postedDateText": "2026-04-23",
+      "description": "Automation and integration role",
+      "requirements": "UiPath, APIs, SQL",
+      "technologiesRaw": "UiPath, Python, SQL",
+      "technologiesNormalized": ["uipath", "python", "sql"],
+      "jobUrl": "https://example.com/job/123",
+      "score": 87,
+      "priority": 1,
+      "matchedSkills": ["uipath", "python"],
+      "missingSkills": ["azure"],
+      "recommendation": "apply",
+      "reviewStatus": "new",
+      "appliedStatus": "pending",
+      "notes": "Good fit",
+      "duplicateKey": "linkedin|acme corp|rpa developer|lima"
+    }
+  ]
+}

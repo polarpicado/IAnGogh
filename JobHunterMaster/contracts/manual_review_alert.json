@@ -1,0 +1,10 @@
+﻿{
+  "type": "field_unmapped",
+  "profileId": "profile-001",
+  "jobId": "job-001",
+  "portal": "LinkedIn",
+  "fieldName": "Current CTC",
+  "suggestedData": "Not available",
+  "screenshotPath": "C:/data/logs/screenshot_001.png",
+  "notes": "Manual input required"
+}

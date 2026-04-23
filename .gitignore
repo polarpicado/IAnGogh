@@ -1,0 +1,21 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# Env
+.env
+
+# Runtime data
+JobHunterMaster/data/backups/*
+JobHunterMaster/data/exports/*
+JobHunterMaster/data/temp/*
+JobHunterMaster/data/logs/*
+
+# Keep folders
+!JobHunterMaster/data/backups/.gitkeep
+!JobHunterMaster/data/exports/.gitkeep
+!JobHunterMaster/data/temp/.gitkeep
+!JobHunterMaster/data/logs/.gitkeep

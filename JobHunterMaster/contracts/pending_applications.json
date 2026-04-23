@@ -1,0 +1,15 @@
+﻿{
+  "applications": [
+    {
+      "applicationId": "app-001",
+      "profileId": "profile-001",
+      "jobId": "job-001",
+      "portal": "LinkedIn",
+      "status": "pending",
+      "captchaEncountered": false,
+      "manualInterventionRequired": false,
+      "uploadedResumeId": "resume-001",
+      "observations": "ready"
+    }
+  ]
+}

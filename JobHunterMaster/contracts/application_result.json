@@ -1,0 +1,12 @@
+﻿{
+  "applicationId": "app-001",
+  "profileId": "profile-001",
+  "jobId": "job-001",
+  "portal": "LinkedIn",
+  "status": "success",
+  "captchaEncountered": false,
+  "manualInterventionRequired": false,
+  "unknownFields": [],
+  "uploadedResumeId": "resume-001",
+  "observations": "Form submitted correctly"
+}

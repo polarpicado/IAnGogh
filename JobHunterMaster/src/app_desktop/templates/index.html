@@ -1,0 +1,93 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ t.title }}</title>
+  <style>
+    :root {
+      --bg-light: #f7efe7;
+      --surface-light: #fff8f1;
+      --text-light: #172121;
+      --bg-dark: #0c1618;
+      --surface-dark: #142326;
+      --text-dark: #eaf4f1;
+      --brand: #2f9c95;
+      --accent: #f4b942;
+    }
+    body { margin:0; font-family: "Segoe UI", Tahoma, sans-serif; background: {{ 'var(--bg-dark)' if theme == 'dark' else 'var(--bg-light)' }}; color: {{ 'var(--text-dark)' if theme == 'dark' else 'var(--text-light)' }}; }
+    .layout { display:grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    nav { background: linear-gradient(180deg, #1f6b67, #184f4c); color:white; padding:22px; }
+    nav h1 { font-size: 1.1rem; margin:0 0 1rem; }
+    nav p { font-size: .9rem; opacity:.92; }
+    main { padding: 22px; }
+    .card { background: {{ 'var(--surface-dark)' if theme == 'dark' else 'var(--surface-light)' }}; border-radius: 14px; padding: 14px; margin-bottom: 14px; border: 1px solid rgba(47,156,149,.35); }
+    table { width:100%; border-collapse: collapse; font-size:.9rem; }
+    th, td { text-align:left; padding:8px; border-bottom:1px solid rgba(127,127,127,.2); }
+    .chip { display:inline-block; background: rgba(244,185,66,.2); border:1px solid rgba(244,185,66,.7); padding:2px 8px; border-radius:999px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav>
+    <h1>{{ t.title }}</h1>
+    <p>API local + dashboard operativo.</p>
+    {% if active %}
+      <p><strong>Activo:</strong> {{ active.displayName }}</p>
+      <p><span class="chip">{{ active.professionalTitle }}</span></p>
+    {% else %}
+      <p>No hay perfil activo.</p>
+    {% endif %}
+  </nav>
+  <main>
+    <section class="card">
+      <h2>{{ t.profiles }}</h2>
+      <table>
+        <thead><tr><th>Nombre</th><th>Título</th><th>Activo</th></tr></thead>
+        <tbody>
+          {% for p in profiles %}
+            <tr><td>{{ p.displayName }}</td><td>{{ p.professionalTitle }}</td><td>{{ p.isActive }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>{{ t.jobs }}</h2>
+      <table>
+        <thead><tr><th>Empresa</th><th>Puesto</th><th>Portal</th><th>Ubicación</th><th>Score</th><th>Estado</th></tr></thead>
+        <tbody>
+          {% for j in jobs %}
+            <tr><td>{{ j.company }}</td><td>{{ j.jobTitle }}</td><td>{{ j.sourcePortal }}</td><td>{{ j.location }}</td><td>{{ j.score }}</td><td>{{ j.appliedStatus }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>{{ t.applications }}</h2>
+      <table>
+        <thead><tr><th>ID</th><th>Portal</th><th>Estado</th><th>Captcha</th><th>Manual</th></tr></thead>
+        <tbody>
+          {% for a in applications %}
+            <tr><td>{{ a.applicationId }}</td><td>{{ a.portal }}</td><td>{{ a.status }}</td><td>{{ a.captchaEncountered }}</td><td>{{ a.manualInterventionRequired }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>{{ t.manual }}</h2>
+      <table>
+        <thead><tr><th>Tipo</th><th>Detalle</th><th>Fecha</th></tr></thead>
+        <tbody>
+          {% for m in manual %}
+            <tr><td>{{ m.type or 'manual_review' }}</td><td>{{ m.payload or m }}</td><td>{{ m.createdAt }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
+</body>
+</html>

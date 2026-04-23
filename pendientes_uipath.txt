@@ -53,3 +53,27 @@ Entregables inmediatos para Elchapi/Joao
 - Preparar flujo de prueba con vacantes simuladas.
 - Validar formato final de JSON de entrada/salida.
 - Probar ciclo completo: buscar -> extraer -> devolver -> postular -> reportar.
+
+Estado actual de integración (implementado en este MVP)
+- API local disponible en: http://127.0.0.1:8787
+- Endpoint contrato perfil activo: GET /api/contracts/active-profile
+- Endpoint recepción vacantes: POST /api/jobs/extracted
+- Endpoint resultado postulación: POST /api/applications/result
+- Endpoint revisión manual: POST /api/applications/manual-review
+- Endpoint captcha waiting: POST /api/captcha/waiting
+- Endpoint captcha resolved: POST /api/captcha/resolved
+
+Ubicación de contratos JSON de referencia
+- JobHunterMaster/contracts/active_profile.json
+- JobHunterMaster/contracts/extracted_jobs.json
+- JobHunterMaster/contracts/pending_applications.json
+- JobHunterMaster/contracts/application_result.json
+- JobHunterMaster/contracts/manual_review_alert.json
+
+Pendientes UiPath específicos para la siguiente iteración
+- Consumir perfil activo real desde /api/contracts/active-profile.
+- Publicar vacantes extraídas usando duplicateKey consistente.
+- Implementar estrategia de reintento cuando un portal cambie el DOM.
+- Publicar unknownFields cuando un campo no pueda mapearse.
+- Enviar screenshotPath cuando haya revisión manual requerida.
+- Probar flujo captcha: waiting -> resolución humana -> resolved.

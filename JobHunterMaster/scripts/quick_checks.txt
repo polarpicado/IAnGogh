@@ -1,0 +1,13 @@
+﻿# Quick API checks
+
+# 1) Create profile
+curl -X POST http://127.0.0.1:8787/api/profiles -H "Content-Type: application/json" -d "{\"displayName\":\"Perfil RPA\",\"professionalTitle\":\"RPA Developer\"}"
+
+# 2) Set active profile
+# curl -X POST http://127.0.0.1:8787/api/profiles/{PROFILE_ID}/activate
+
+# 3) Receive extracted jobs from UiPath
+curl -X POST http://127.0.0.1:8787/api/jobs/extracted -H "Content-Type: application/json" -d @contracts/extracted_jobs.json
+
+# 4) Export active profile contract
+curl http://127.0.0.1:8787/api/contracts/active-profile

@@ -1,0 +1,51 @@
+﻿{
+  "identity": {
+    "firstName": "Ana",
+    "lastName": "Paredes",
+    "displayName": "Ana Paredes"
+  },
+  "contact": {
+    "emails": ["ana@example.com"],
+    "phones": []
+  },
+  "location": {
+    "countryOfResidence": "Peru",
+    "preferredLocations": ["Lima"]
+  },
+  "legalSensitiveAllowedFields": {
+    "allowOptionalPhone": false,
+    "allowDocumentNumber": false
+  },
+  "profileSummary": {
+    "professionalTitle": "RPA Developer",
+    "summary": "Automation specialist focused on UiPath and Python integrations"
+  },
+  "desiredRoles": ["RPA Developer", "Automation Engineer"],
+  "skills": [
+    {"name": "UiPath", "proficiency": "advanced"},
+    {"name": "Python", "proficiency": "intermediate"}
+  ],
+  "languages": [
+    {"name": "Spanish", "level": "native"},
+    {"name": "English", "level": "intermediate"}
+  ],
+  "workExperiences": [],
+  "education": [],
+  "preferredDocuments": [
+    {
+      "documentId": "doc-123",
+      "category": "cv",
+      "pdfPath": "C:/data/documents/profile/pdf/doc-123.pdf",
+      "originalPath": "C:/data/documents/profile/originals/doc-123.docx"
+    }
+  ],
+  "applicationPreferences": {
+    "preferredWorkModes": ["remote", "hybrid"],
+    "preferredCountries": ["Peru", "Chile"]
+  },
+  "fieldAliases": {
+    "phone": ["phone", "telefono", "mobile", "celular"],
+    "email": ["email", "correo", "mail"],
+    "resume": ["resume", "cv", "curriculum"]
+  }
+}
