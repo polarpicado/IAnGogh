@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import hashlib
 from fastapi import FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -18,8 +19,7 @@ from app_infrastructure.mongo import mongo
 app = FastAPI(title="IAnGogh Local API", version="0.1.0")
 templates = Jinja2Templates(directory=str((CONFIG.base_dir / "src" / "app_desktop" / "templates")))
 AUTH_COOKIE = "iangogh_auth"
-LOGIN_USER = "user"
-LOGIN_PASSWORD = "user"
+users_collection = mongo.db.auth_users
 
 AREA_TAXONOMY = [
     "Administracion", "Agroindustria", "Analitica", "Arquitectura", "Atencion al cliente", "Auditoria",
@@ -70,10 +70,29 @@ def _csv_to_list(raw: str) -> list[str]:
     return [x.strip() for x in (raw or "").split(",") if x.strip()]
 
 
+def _hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def _ensure_default_user() -> None:
+    if users_collection.find_one({"username": "user"}):
+        return
+    users_collection.insert_one(
+        {
+            "email": "user@example.com",
+            "username": "user",
+            "passwordHash": _hash_password("user"),
+        }
+    )
+
+
+_ensure_default_user()
+
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
-    public_paths = {"/login", "/api/health"}
+    public_paths = {"/login", "/register", "/api/health"}
     if path in public_paths:
         return await call_next(request)
     if request.cookies.get(AUTH_COOKIE) != "1":
@@ -83,19 +102,29 @@ async def auth_middleware(request: Request, call_next):
 
 @app.get("/login")
 def login_page(request: Request):
+    qp = request.query_params
     return templates.TemplateResponse(
         request,
         "login.html",
-        {"error": request.query_params.get("error", "")},
+        {
+            "error": qp.get("error", ""),
+            "reg_error": qp.get("reg_error", ""),
+            "reg_exists": qp.get("reg_exists", ""),
+            "registered": qp.get("registered", ""),
+        },
     )
 
 
 @app.post("/login")
 def login_submit(
-    username: str = Form(...),
+    username_or_email: str = Form(...),
     password: str = Form(...),
 ):
-    if username != LOGIN_USER or password != LOGIN_PASSWORD:
+    identifier = (username_or_email or "").strip().lower()
+    user = users_collection.find_one(
+        {"$or": [{"username": identifier}, {"email": identifier}]}
+    )
+    if not user or user.get("passwordHash") != _hash_password(password):
         return RedirectResponse(url="/login?error=1", status_code=303)
 
     response = RedirectResponse(url="/", status_code=303)
@@ -107,6 +136,33 @@ def login_submit(
         max_age=60 * 60 * 12,
     )
     return response
+
+
+@app.post("/register")
+def register_submit(
+    email: str = Form(...),
+    username: str = Form(...),
+    password: str = Form(...),
+):
+    email_clean = (email or "").strip().lower()
+    username_clean = (username or "").strip().lower()
+    if not email_clean or not username_clean or not password:
+        return RedirectResponse(url="/login?reg_error=1", status_code=303)
+
+    exists = users_collection.find_one(
+        {"$or": [{"username": username_clean}, {"email": email_clean}]}
+    )
+    if exists:
+        return RedirectResponse(url="/login?reg_exists=1", status_code=303)
+
+    users_collection.insert_one(
+        {
+            "email": email_clean,
+            "username": username_clean,
+            "passwordHash": _hash_password(password),
+        }
+    )
+    return RedirectResponse(url="/login?registered=1", status_code=303)
 
 
 @app.post("/logout")

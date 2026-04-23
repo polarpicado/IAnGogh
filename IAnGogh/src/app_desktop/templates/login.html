@@ -11,6 +11,7 @@
       --text: #eaf4f1;
       --brand: #2f9c95;
       --warn: #f4b942;
+      --line: rgba(127,127,127,.35);
     }
     body {
       margin: 0;
@@ -20,9 +21,11 @@
       background: radial-gradient(circle at top, #1f6b67, #0c1618 55%);
       font-family: "Segoe UI", Tahoma, sans-serif;
       color: var(--text);
+      padding: 12px;
+      box-sizing: border-box;
     }
     .card {
-      width: min(92vw, 420px);
+      width: min(96vw, 980px);
       background: var(--surface);
       border-radius: 14px;
       border: 1px solid rgba(47,156,149,.45);
@@ -31,12 +34,15 @@
     }
     h1 { margin: 0 0 8px; font-size: 1.2rem; }
     p { margin: 0 0 14px; opacity: .85; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; }
+    .box { border: 1px solid rgba(47,156,149,.35); border-radius: 12px; padding: 14px; }
+    h2 { margin: 0 0 6px; font-size: 1rem; }
     label { display: block; margin: 10px 0 5px; font-size: .9rem; }
     input {
       width: 100%;
       box-sizing: border-box;
       border-radius: 8px;
-      border: 1px solid rgba(127,127,127,.35);
+      border: 1px solid var(--line);
       background: rgba(255,255,255,.06);
       color: inherit;
       padding: 9px;
@@ -53,11 +59,20 @@
       font-weight: 600;
     }
     .hint { margin-top: 12px; font-size: .85rem; opacity: .8; }
-    .error {
+    .msg {
       margin-top: 8px;
       background: rgba(244,185,66,.2);
       color: var(--warn);
       border: 1px solid rgba(244,185,66,.8);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: .9rem;
+    }
+    .ok {
+      margin-top: 8px;
+      background: rgba(47,156,149,.2);
+      color: #9df0e8;
+      border: 1px solid rgba(47,156,149,.8);
       border-radius: 8px;
       padding: 8px;
       font-size: .9rem;
@@ -68,18 +83,47 @@
 <body>
   <div class="card">
     <h1>Acceso IAnGogh</h1>
-    <p>Inicia sesion para entrar al panel.</p>
+    <p>Inicia sesión o crea una cuenta nueva.</p>
+
     {% if error %}
-      <div class="error">Credenciales invalidas. Intenta nuevamente.</div>
+      <div class="msg">Credenciales inválidas. Usa usuario o correo + contraseña.</div>
     {% endif %}
-    <form method="post" action="/login">
-      <label>Usuario</label>
-      <input name="username" autocomplete="username" required />
-      <label>Contrasena</label>
-      <input name="password" type="password" autocomplete="current-password" required />
-      <button class="btn" type="submit">Ingresar</button>
-    </form>
-    <div class="hint">Demo: <code>user</code> / <code>user</code></div>
+    {% if reg_error %}
+      <div class="msg">Completa correo, usuario y contraseña para registrarte.</div>
+    {% endif %}
+    {% if reg_exists %}
+      <div class="msg">Ese usuario o correo ya existe.</div>
+    {% endif %}
+    {% if registered %}
+      <div class="ok">Cuenta creada. Ya puedes iniciar sesión.</div>
+    {% endif %}
+
+    <div class="grid">
+      <div class="box">
+        <h2>Iniciar Sesión</h2>
+        <form method="post" action="/login">
+          <label>Usuario o correo</label>
+          <input name="username_or_email" autocomplete="username" required />
+          <label>Contraseña</label>
+          <input name="password" type="password" autocomplete="current-password" required />
+          <button class="btn" type="submit">Ingresar</button>
+        </form>
+        <div class="hint">Demo: <code>user</code> / <code>user</code></div>
+      </div>
+
+      <div class="box">
+        <h2>Crear Cuenta</h2>
+        <form method="post" action="/register">
+          <label>Correo</label>
+          <input name="email" type="email" required />
+          <label>Usuario</label>
+          <input name="username" required />
+          <label>Contraseña</label>
+          <input name="password" type="password" required />
+          <button class="btn" type="submit">Registrarme</button>
+        </form>
+      </div>
+    </div>
   </div>
 </body>
 </html>
